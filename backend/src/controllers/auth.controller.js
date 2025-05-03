@@ -1,4 +1,4 @@
-import bcrypt from 'bcryptjs';
+import bcrypt from 'bcrypt';
 import { pool } from '../config/database.js';
 import { generateTokens, validateEmailDomain } from '../utils/jwt.js';
 
