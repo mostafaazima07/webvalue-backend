@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Task Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-gray-800" data-en="Task Dashboard" data-ar="لوحة المهام">Task Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="setLanguage('en')" class="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600">EN</button>
+                    <button onclick="setLanguage('ar')" class="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600">عربي</button>
+                    <button onclick="logout()" class="text-red-500 hover:text-red-600">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span data-en="Logout" data-ar="تسجيل خروج">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- Task Filters -->
+        <div class="mb-8 flex flex-wrap gap-4">
+            <select id="statusFilter" class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <option value="" data-en="All Status" data-ar="جميع الحالات">All Status</option>
+                <option value="NOT_STARTED" data-en="Not Started" data-ar="لم يبدأ">Not Started</option>
+                <option value="IN_PROGRESS" data-en="In Progress" data-ar="قيد التنفيذ">In Progress</option>
+                <option value="COMPLETED" data-en="Completed" data-ar="مكتمل">Completed</option>
+            </select>
+
+            <input type="date" id="startDate" class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="date" id="endDate" class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            
+            <button onclick="loadTasks()" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                <i class="fas fa-filter"></i>
+                <span data-en="Apply Filters" data-ar="تطبيق الفلاتر">Apply Filters</span>
+            </button>
+        </div>
+
+        <!-- Tasks List -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="tasksList">
+            <!-- Task cards will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Add Task Modal -->
+    <div id="addTaskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg w-96">
+            <h2 class="text-xl font-bold mb-4" data-en="Add New Task" data-ar="إضافة مهمة جديدة">Add New Task</h2>
+            <form id="addTaskForm" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 mb-2" data-en="Title" data-ar="العنوان">Title</label>
+                    <input type="text" name="title" class="w-full px-4 py-2 border rounded-md" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" data-en="Description" data-ar="الوصف">Description</label>
+                    <textarea name="description" class="w-full px-4 py-2 border rounded-md" rows="3" required></textarea>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" data-en="Deadline" data-ar="الموعد النهائي">Deadline</label>
+                    <input type="datetime-local" name="deadline" class="w-full px-4 py-2 border rounded-md" required>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="closeAddTaskModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                        <span data-en="Cancel" data-ar="إلغاء">Cancel</span>
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                        <span data-en="Add Task" data-ar="إضافة المهمة">Add Task</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication
+        if (!localStorage.getItem('token')) {
+            window.location.href = '/index.html';
+        }
+
+        function setLanguage(lang) {
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            
+            const elements = document.querySelectorAll('[data-en]');
+            elements.forEach(el => {
+                el.textContent = el.getAttribute(`data-${lang}`);
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/index.html';
+        }
+
+        async function loadTasks() {
+            const status = document.getElementById('statusFilter').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/tasks?status=${status}&startDate=${startDate}&endDate=${endDate}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load tasks');
+                }
+
+                const tasks = await response.json();
+                displayTasks(tasks);
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+            }
+        }
+
+        function displayTasks(tasks) {
+            const tasksList = document.getElementById('tasksList');
+            tasksList.innerHTML = '';
+
+            tasks.forEach(task => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-6 rounded-lg shadow-md';
+                card.innerHTML = `
+                    <h3 class="text-lg font-semibold mb-2">${task.title}</h3>
+                    <p class="text-gray-600 mb-4">${task.description}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm text-gray-500">
+                            <i class="far fa-calendar"></i> ${new Date(task.deadline).toLocaleDateString()}
+                        </span>
+                        <select onchange="updateTaskStatus('${task.id}', this.value)" class="px-2 py-1 border rounded-md text-sm">
+                            <option value="NOT_STARTED" ${task.status === 'NOT_STARTED' ? 'selected' : ''}>Not Started</option>
+                            <option value="IN_PROGRESS" ${task.status === 'IN_PROGRESS' ? 'selected' : ''}>In Progress</option>
+                            <option value="COMPLETED" ${task.status === 'COMPLETED' ? 'selected' : ''}>Completed</option>
+                        </select>
+                    </div>
+                `;
+                tasksList.appendChild(card);
+            });
+        }
+
+        async function updateTaskStatus(taskId, status) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/tasks/${taskId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update task status');
+                }
+
+                loadTasks();
+            } catch (error) {
+                console.error('Error updating task status:', error);
+            }
+        }
+
+        // Load tasks on page load
+        loadTasks();
+    </script>
+</body>
+</html>

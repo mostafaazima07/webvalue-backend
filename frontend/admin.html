@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Task Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-gray-800" data-en="Admin Dashboard" data-ar="لوحة المشرف">Admin Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="setLanguage('en')" class="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600">EN</button>
+                    <button onclick="setLanguage('ar')" class="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600">عربي</button>
+                    <button onclick="logout()" class="text-red-500 hover:text-red-600">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span data-en="Logout" data-ar="تسجيل خروج">Logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <!-- System Analytics -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-lg font-semibold mb-4" data-en="Task Statistics" data-ar="إحصائيات المهام">Task Statistics</h3>
+                <div id="taskStats" class="space-y-2">
+                    <!-- Task statistics will be inserted here -->
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-lg font-semibold mb-4" data-en="User Statistics" data-ar="إحصائيات المستخدمين">User Statistics</h3>
+                <div id="userStats" class="space-y-2">
+                    <!-- User statistics will be inserted here -->
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-lg font-semibold mb-4" data-en="Top Performers" data-ar="أفضل الأداء">Top Performers</h3>
+                <div id="topPerformers" class="space-y-2">
+                    <!-- Top performers will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- User Management -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold" data-en="User Management" data-ar="إدارة المستخدمين">User Management</h2>
+                <button onclick="showAddUserModal()" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                    <i class="fas fa-plus"></i>
+                    <span data-en="Add User" data-ar="إضافة مستخدم">Add User</span>
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="bg-gray-50">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-en="Name" data-ar="الاسم">Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-en="Email" data-ar="البريد الإلكتروني">Email</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-en="Role" data-ar="الدور">Role</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-en="Tasks" data-ar="المهام">Tasks</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" data-en="Actions" data-ar="الإجراءات">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersList" class="bg-white divide-y divide-gray-200">
+                        <!-- Users will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Export Data -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold mb-4" data-en="Export Data" data-ar="تصدير البيانات">Export Data</h2>
+            <div class="flex gap-4">
+                <button onclick="exportData('tasks')" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
+                    <i class="fas fa-tasks"></i>
+                    <span data-en="Export Tasks" data-ar="تصدير المهام">Export Tasks</span>
+                </button>
+                <button onclick="exportData('users')" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
+                    <i class="fas fa-users"></i>
+                    <span data-en="Export Users" data-ar="تصدير المستخدمين">Export Users</span>
+                </button>
+                <button onclick="exportData('performance')" class="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
+                    <i class="fas fa-chart-line"></i>
+                    <span data-en="Export Performance" data-ar="تصدير الأداء">Export Performance</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg w-96">
+            <h2 class="text-xl font-bold mb-4" data-en="Add New User" data-ar="إضافة مستخدم جديد">Add New User</h2>
+            <form id="addUserForm" class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 mb-2" data-en="Full Name" data-ar="الاسم الكامل">Full Name</label>
+                    <input type="text" name="fullName" class="w-full px-4 py-2 border rounded-md" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" data-en="Email" data-ar="البريد الإلكتروني">Email</label>
+                    <input type="email" name="email" class="w-full px-4 py-2 border rounded-md" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" data-en="Password" data-ar="كلمة المرور">Password</label>
+                    <input type="password" name="password" class="w-full px-4 py-2 border rounded-md" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" data-en="Role" data-ar="الدور">Role</label>
+                    <select name="role" class="w-full px-4 py-2 border rounded-md">
+                        <option value="employee" data-en="Employee" data-ar="موظف">Employee</option>
+                        <option value="admin" data-en="Admin" data-ar="مشرف">Admin</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="closeAddUserModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">
+                        <span data-en="Cancel" data-ar="إلغاء">Cancel</span>
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                        <span data-en="Add User" data-ar="إضافة مستخدم">Add User</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Check authentication and admin role
+        if (!localStorage.getItem('token')) {
+            window.location.href = '/index.html';
+        }
+
+        function setLanguage(lang) {
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+            
+            const elements = document.querySelectorAll('[data-en]');
+            elements.forEach(el => {
+                el.textContent = el.getAttribute(`data-${lang}`);
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/index.html';
+        }
+
+        async function loadSystemAnalytics() {
+            try {
+                const response = await fetch('http://localhost:3000/api/admin/analytics/system', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load system analytics');
+                }
+
+                const data = await response.json();
+                displaySystemAnalytics(data);
+            } catch (error) {
+                console.error('Error loading system analytics:', error);
+            }
+        }
+
+        function displaySystemAnalytics(data) {
+            // Display task statistics
+            document.getElementById('taskStats').innerHTML = `
+                <p>Total Tasks: ${data.task_statistics.total_tasks}</p>
+                <p>Completed: ${data.task_statistics.completed_tasks}</p>
+                <p>In Progress: ${data.task_statistics.in_progress_tasks}</p>
+                <p>Not Started: ${data.task_statistics.not_started_tasks}</p>
+            `;
+
+            // Display user statistics
+            document.getElementById('userStats').innerHTML = `
+                <p>Total Users: ${data.user_statistics.total_users}</p>
+                <p>Admins: ${data.user_statistics.admin_count}</p>
+                <p>Employees: ${data.user_statistics.employee_count}</p>
+            `;
+
+            // Display top performers
+            document.getElementById('topPerformers').innerHTML = data.top_performers
+                .map(user => `
+                    <div class="flex justify-between">
+                        <span>${user.full_name}</span>
+                        <span>${user.avg_performance_score}%</span>
+                    </div>
+                `).join('');
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch('http://localhost:3000/api/admin/users', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to load users');
+                }
+
+                const users = await response.json();
+                displayUsers(users);
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        function displayUsers(users) {
+            const usersList = document.getElementById('usersList');
+            usersList.innerHTML = users.map(user => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">${user.full_name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${user.email}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${user.role}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${user.assigned_tasks_count} / ${user.completed_tasks_count}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <button onclick="viewUserAnalytics('${user.id}')" class="text-blue-500 hover:text-blue-600 mr-2">
+                            <i class="fas fa-chart-bar"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function exportData(type) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/admin/export?type=${type}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to export data');
+                }
+
+                const data = await response.json();
+                // Convert to CSV and download
+                const csv = convertToCSV(data.data);
+                downloadCSV(csv, `${type}_export.csv`);
+            } catch (error) {
+                console.error('Error exporting data:', error);
+            }
+        }
+
+        function convertToCSV(data) {
+            const headers = Object.keys(data[0]);
+            const rows = data.map(obj => headers.map(header => obj[header]));
+            return [headers, ...rows].map(row => row.join(',')).join('\n');
+        }
+
+        function downloadCSV(csv, filename) {
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Load data on page load
+        loadSystemAnalytics();
+        loadUsers();
+    </script>
+</body>
+</html>
