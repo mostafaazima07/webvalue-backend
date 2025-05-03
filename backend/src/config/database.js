@@ -1,10 +1,11 @@
 import pg from 'pg';
 import dotenv from 'dotenv';
+import bcrypt from 'bcrypt'; // ✅ استخدم bcrypt الأصلية
 
 dotenv.config();
 
 const pool = new pg.Pool({
-  host: process.env.DB_HOST || 'localhost',  // Use DB_HOST env var or fallback to localhost
+  host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
   database: process.env.DB_NAME || 'task_management',
   user: process.env.DB_USER || 'postgres',
@@ -83,19 +84,16 @@ const initDatabase = async () => {
     const adminPassword = 'Aa123456';
     const adminName = 'System Administrator';
 
-    // Check if admin exists
     const adminResult = await pool.query(
       'SELECT * FROM users WHERE email = $1',
       [adminEmail]
     );
 
     if (adminResult.rows.length === 0) {
-      // Hash password
-      const bcrypt = await import('bcryptjs');
+      // ✅ Hash password using bcrypt
       const salt = await bcrypt.genSalt(10);
       const passwordHash = await bcrypt.hash(adminPassword, salt);
 
-      // Create admin user
       await pool.query(
         `INSERT INTO users (email, password_hash, full_name, role)
          VALUES ($1, $2, $3, 'admin')`,
@@ -111,4 +109,4 @@ const initDatabase = async () => {
   }
 };
 
-export { pool, initDatabase };
+export { pool, initDatabase
