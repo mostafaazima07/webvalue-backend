@@ -109,4 +109,4 @@ const initDatabase = async () => {
   }
 };
 
-export { pool, initDatabase
+export { pool, initDatabase };
