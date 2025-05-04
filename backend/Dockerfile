@@ -1,26 +1,25 @@
-# Use Node.js LTS version
+# استخدم نسخة خفيفة من Node.js
 FROM node:20-slim
 
-# Create app directory
+# إعداد مجلد العمل داخل الحاوية
 WORKDIR /usr/src/app
 
-# Install app dependencies
-# Copy package.json and package-lock.json
+# انسخ فقط ملفات تعريف الحزم أولًا (للاستفادة من التخزين المؤقت)
 COPY package*.json ./
 
-# Install dependencies
+# تثبيت الحزم
 RUN npm install
 
-# Bundle app source
+# نسخ باقي الملفات (بعد التثبيت لتقليل إعادة البناء)
 COPY . .
 
-# Create a non-root user
+# أنشئ مستخدم غير root (لأسباب أمنية)
 RUN adduser --disabled-password --gecos "" appuser
 RUN chown -R appuser:appuser /usr/src/app
 USER appuser
 
-# Expose port
+# تعيين المنفذ الذي سيعمل عليه التطبيق
 EXPOSE 3000
 
-# Start the application
-CMD [ "npm", "start" ]
+# أمر التشغيل الأساسي
+CMD ["npm", "start"]
