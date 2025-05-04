@@ -5,63 +5,54 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import { initDatabase } from './config/database.js';
 
-// Initialize environment variables
 dotenv.config();
 
 const app = express();
 
-// Security middleware
-app.use(helmet());
+// ✅ CORS إعدادات
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL 
-    : ['http://localhost:3000', 'http://localhost:8000'],
+  origin: [
+    'https://thewebvalue.com',
+    'http://localhost:3000',
+    'http://localhost:8000'
+  ],
   credentials: true
 }));
 
-// Rate limiting
+// ✅ أمن
+app.use(helmet());
+
+// ✅ تحديد معدل الطلبات
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100
 });
 app.use(limiter);
 
-// Body parsing middleware
+// ✅ التعامل مع البيانات
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
+// ✅ مسارات أساسية
+app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
+app.get('/', (req, res) => res.send('🎯 Web Value Task Management API is running'));
+app.get('/debug', (req, res) => res.json({ status: 'Server is running', timestamp: new Date() }));
 
-// ✅ Root route
-app.get('/', (req, res) => {
-  res.send('🎯 Web Value Task Management API is running');
-});
-
-// Import routes
+// ✅ استيراد المسارات
 import authRoutes from './routes/auth.routes.js';
-
-// API routes
 app.use('/api/auth', authRoutes);
 
-// Debug route
-app.get('/debug', (req, res) => {
-  res.json({ status: 'Server is running', timestamp: new Date() });
-});
+// ✅ مسارات متوقفة مؤقتًا
+app.use('/api/tasks', (_, res) => res.status(503).json({ message: 'Service temporarily unavailable' }));
+app.use('/api/admin', (_, res) => res.status(503).json({ message: 'Service temporarily unavailable' }));
 
-// Temporary disabled routes
-app.use('/api/tasks', (req, res) => res.status(503).json({ message: 'Service temporarily unavailable' }));
-app.use('/api/admin', (req, res) => res.status(503).json({ message: 'Service temporarily unavailable' }));
-
-// Log all incoming requests
+// ✅ تسجيل كل الطلبات
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
   next();
 });
 
-// Error handling middleware
+// ✅ معالجة الأخطاء
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
@@ -72,9 +63,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start the server
+// ✅ بدء الخادم
 const PORT = process.env.PORT || 3000;
-
 const startServer = async () => {
   try {
     await initDatabase();
