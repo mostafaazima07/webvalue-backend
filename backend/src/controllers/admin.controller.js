@@ -1,6 +1,38 @@
 import { pool } from '../config/database.js';
+import bcrypt from 'bcrypt';
 
 class AdminController {
+  // Create new user
+  async createUser(req, res) {
+    const client = await pool.connect();
+    try {
+      const { email, password, full_name, role } = req.body;
+
+      const existing = await client.query('SELECT id FROM users WHERE email = $1', [email]);
+      if (existing.rows.length > 0) {
+        return res.status(400).json({ message: 'Email already exists' });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const result = await client.query(
+        `INSERT INTO users (email, password_hash, full_name, role)
+         VALUES ($1, $2, $3, $4)
+         RETURNING id, email, full_name, role, created_at`,
+        [email, hashedPassword, full_name, role]
+      );
+
+      res.status(201).json({
+        message: 'User created successfully',
+        user: result.rows[0]
+      });
+    } catch (error) {
+      console.error('Create user error:', error);
+      res.status(500).json({ message: 'An error occurred while creating user' });
+    } finally {
+      client.release();
+    }
+  }
+
   // Get all users
   async getAllUsers(req, res) {
     try {
@@ -27,7 +59,6 @@ class AdminController {
     try {
       const { userId } = req.params;
 
-      // Get user details and task statistics
       const userAnalytics = await pool.query(
         `SELECT 
           u.id,
@@ -47,12 +78,9 @@ class AdminController {
       );
 
       if (userAnalytics.rows.length === 0) {
-        return res.status(404).json({
-          message: 'User not found'
-        });
+        return res.status(404).json({ message: 'User not found' });
       }
 
-      // Get monthly performance scores
       const performanceScores = await pool.query(
         `SELECT score, month, notes
          FROM performance_scores
@@ -62,7 +90,6 @@ class AdminController {
         [userId]
       );
 
-      // Get recent tasks
       const recentTasks = await pool.query(
         `SELECT 
           t.*,
@@ -82,9 +109,7 @@ class AdminController {
       });
     } catch (error) {
       console.error('Get user analytics error:', error);
-      res.status(500).json({
-        message: 'An error occurred while fetching user analytics'
-      });
+      res.status(500).json({ message: 'An error occurred while fetching user analytics' });
     }
   }
 
@@ -96,20 +121,11 @@ class AdminController {
       const { score, month, notes } = req.body;
 
       await client.query('BEGIN');
-
-      // Check if user exists
-      const userExists = await client.query(
-        'SELECT id FROM users WHERE id = $1',
-        [userId]
-      );
-
+      const userExists = await client.query('SELECT id FROM users WHERE id = $1', [userId]);
       if (userExists.rows.length === 0) {
-        return res.status(404).json({
-          message: 'User not found'
-        });
+        return res.status(404).json({ message: 'User not found' });
       }
 
-      // Update or insert performance score
       const result = await client.query(
         `INSERT INTO performance_scores (user_id, score, month, notes)
          VALUES ($1, $2, $3, $4)
@@ -130,9 +146,7 @@ class AdminController {
     } catch (error) {
       await client.query('ROLLBACK');
       console.error('Update performance score error:', error);
-      res.status(500).json({
-        message: 'An error occurred while updating performance score'
-      });
+      res.status(500).json({ message: 'An error occurred while updating performance score' });
     } finally {
       client.release();
     }
@@ -141,7 +155,6 @@ class AdminController {
   // Get system analytics
   async getSystemAnalytics(req, res) {
     try {
-      // Get overall task statistics
       const taskStats = await pool.query(
         `SELECT
           COUNT(*) as total_tasks,
@@ -152,7 +165,6 @@ class AdminController {
          FROM tasks`
       );
 
-      // Get user statistics
       const userStats = await pool.query(
         `SELECT
           COUNT(*) as total_users,
@@ -161,7 +173,6 @@ class AdminController {
          FROM users`
       );
 
-      // Get top performing users
       const topPerformers = await pool.query(
         `SELECT 
           u.id,
@@ -185,9 +196,7 @@ class AdminController {
       });
     } catch (error) {
       console.error('Get system analytics error:', error);
-      res.status(500).json({
-        message: 'An error occurred while fetching system analytics'
-      });
+      res.status(500).json({ message: 'An error occurred while fetching system analytics' });
     }
   }
 
@@ -244,20 +253,13 @@ class AdminController {
           break;
 
         default:
-          return res.status(400).json({
-            message: 'Invalid export type'
-          });
+          return res.status(400).json({ message: 'Invalid export type' });
       }
 
-      res.json({
-        type,
-        data: data.rows
-      });
+      res.json({ type, data: data.rows });
     } catch (error) {
       console.error('Export data error:', error);
-      res.status(500).json({
-        message: 'An error occurred while exporting data'
-      });
+      res.status(500).json({ message: 'An error occurred while exporting data' });
     }
   }
 }
