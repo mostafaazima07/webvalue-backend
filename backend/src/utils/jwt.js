@@ -4,25 +4,22 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const generateTokens = (user) => {
-  // Remove sensitive information from user object
   const userForToken = {
     id: user.id,
     email: user.email,
     role: user.role
   };
 
-  // Generate access token
   const accessToken = jwt.sign(
     userForToken,
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRES_IN }
+    { expiresIn: String(process.env.JWT_EXPIRES_IN || '1h') }
   );
 
-  // Generate refresh token
   const refreshToken = jwt.sign(
     userForToken,
     process.env.JWT_REFRESH_SECRET,
-    { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN }
+    { expiresIn: String(process.env.JWT_REFRESH_EXPIRES_IN || '7d') }
   );
 
   return {

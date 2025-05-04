@@ -21,8 +21,8 @@ app.use(cors({
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000,
+  max: 100
 });
 app.use(limiter);
 
@@ -35,13 +35,18 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
+// ✅ Root route
+app.get('/', (req, res) => {
+  res.send('🎯 Web Value Task Management API is running');
+});
+
 // Import routes
 import authRoutes from './routes/auth.routes.js';
 
 // API routes
 app.use('/api/auth', authRoutes);
 
-// Debug route to verify server is working
+// Debug route
 app.get('/debug', (req, res) => {
   res.json({ status: 'Server is running', timestamp: new Date() });
 });
@@ -67,15 +72,12 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Initialize database and start server
+// Start the server
 const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
   try {
-    // Initialize database tables
     await initDatabase();
-    
-    // Start the server
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
       console.log(`Environment: ${process.env.NODE_ENV}`);
