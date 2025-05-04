@@ -23,6 +23,7 @@
     "nodemailer": "^6.9.7",
     "pg": "^8.11.3",
     "winston": "^3.11.0"
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",
