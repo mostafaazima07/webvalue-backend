@@ -1,6 +1,6 @@
 import { google } from 'googleapis';
 import { Client } from '@microsoft/microsoft-graph-client';
-import 'isomorphic-fetch';
+import 'node-fetch';
 import dotenv from 'dotenv';
 import { pool } from '../config/database.js';
 
