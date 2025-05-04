@@ -9,7 +9,7 @@ dotenv.config();
 
 const app = express();
 
-// ✅ CORS إعدادات
+// ✅ إعدادات CORS
 app.use(cors({
   origin: [
     'https://thewebvalue.com',
@@ -19,7 +19,7 @@ app.use(cors({
   credentials: true
 }));
 
-// ✅ أمن
+// ✅ الحماية
 app.use(helmet());
 
 // ✅ تحديد معدل الطلبات
@@ -38,13 +38,14 @@ app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
 app.get('/', (req, res) => res.send('🎯 Web Value Task Management API is running'));
 app.get('/debug', (req, res) => res.json({ status: 'Server is running', timestamp: new Date() }));
 
-// ✅ استيراد المسارات
+// ✅ استيراد وربط المسارات
 import authRoutes from './routes/auth.routes.js';
-app.use('/api/auth', authRoutes);
+import taskRoutes from './routes/task.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 
-// ✅ مسارات متوقفة مؤقتًا
-app.use('/api/tasks', (_, res) => res.status(503).json({ message: 'Service temporarily unavailable' }));
-app.use('/api/admin', (_, res) => res.status(503).json({ message: 'Service temporarily unavailable' }));
+app.use('/api/auth', authRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/admin', adminRoutes);
 
 // ✅ تسجيل كل الطلبات
 app.use((req, res, next) => {
@@ -79,3 +80,4 @@ const startServer = async () => {
 };
 
 startServer();
+
