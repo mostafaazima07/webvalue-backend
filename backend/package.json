@@ -22,7 +22,7 @@
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^6.9.7",
     "pg": "^8.11.3",
-    "winston": "^3.11.0"
+    "winston": "^3.11.0",
     "node-fetch": "^3.3.2"
   },
   "devDependencies": {
